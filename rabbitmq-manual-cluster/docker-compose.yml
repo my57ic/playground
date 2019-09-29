@@ -1,0 +1,23 @@
+version: '3'
+services:
+  rabbitmq-1:
+    image: rabbitmq:management
+    hostname: rabbitmq-1
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./definitions.json:/etc/rabbitmq/definitions.json
+    environment:
+    - RABBITMQ_ERLANG_COOKIE='secret' 
+  rabbitmq-2:
+    image: rabbitmq:management
+    hostname: rabbitmq-2
+    ports:
+      - 5673:5672
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - ./definitions.json:/etc/rabbitmq/definitions.json
+    environment:
+      - RABBITMQ_ERLANG_COOKIE='secret'
