@@ -1,0 +1,1 @@
+Example of Spring Cloud Config Server and Spring Cloud Config Client 

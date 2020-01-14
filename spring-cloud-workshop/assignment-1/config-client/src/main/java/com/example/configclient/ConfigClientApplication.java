@@ -20,6 +20,8 @@ public class ConfigClientApplication {
 class ClientRestController{
 
     private final String value;
+    @Value("${bonus:empty}")
+    private String bonusValue;
 
     public ClientRestController(@Value("${foo:test}") String value) {
         this.value = value;
@@ -28,5 +30,10 @@ class ClientRestController{
     @GetMapping("/foo")
     String foo() {
         return this.value;
+    }
+
+    @GetMapping("/bonus")
+    String bonus() {
+        return this.bonusValue;
     }
 }
