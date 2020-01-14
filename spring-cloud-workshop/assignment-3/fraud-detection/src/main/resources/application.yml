@@ -1,0 +1,14 @@
+server.port: 9090
+
+eureka:
+  instance:
+    lease-renewal-interval-in-seconds: 1
+    hostname: localhost
+  client:
+    instance-info-replication-interval-seconds: 1
+    registry-fetch-interval-seconds: 1
+spring:
+  application:
+    name: fraud-detection
+
+management.endpoints.web.exposure.include: "*"

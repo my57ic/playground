@@ -1,0 +1,6 @@
+zipkin:
+    image: openzipkin/zipkin
+    environment:
+      - TRANSPORT_TYPE=http
+    ports:
+      - 9411:9411
