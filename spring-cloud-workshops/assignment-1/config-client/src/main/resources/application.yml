@@ -1,7 +1,0 @@
-server.port: 9080
-spring.application.name: foo
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
