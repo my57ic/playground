@@ -8,6 +8,8 @@ dependencies {
     implementation 'org.springframework.cloud:spring-cloud-starter-zipkin'
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'io.github.resilience4j:resilience4j-micrometer'
+    implementation 'net.logstash.logback:logstash-logback-encoder:6.3'
+    implementation 'ch.qos.logback:logback-classic'
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
