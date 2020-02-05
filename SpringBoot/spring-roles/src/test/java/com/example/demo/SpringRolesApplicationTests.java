@@ -39,21 +39,21 @@ class SpringRolesApplicationTests {
     void shouldAllowToAccessProtectedResourceByAdmin() throws Exception {
         mvc.perform(get("/roles").with(httpBasic("Tom", "password")))
                 .andExpect(status().isOk())
-                .andExpect(authenticated())
+                .andExpect(authenticated().withRoles("ADMIN", "USER"))
                 .andExpect(content().json("[\"ADMIN\",\"USER\"]"));
     }
 
     @Test
     void shouldNotAllowToAccessAdminProtectedResourceByUser() throws Exception {
         mvc.perform(get("/roles").with(httpBasic("Jerry", "password")))
-                .andExpect(authenticated())
+                .andExpect(authenticated().withRoles("USER"))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void shouldAllowToAccessProtectedResourceByUser() throws Exception {
         mvc.perform(get("/users").with(httpBasic("Jerry", "password")))
-                .andExpect(authenticated())
+                .andExpect(authenticated().withRoles("USER"))
                 .andExpect(status().isOk())
                 .andExpect(content().json("[\"Tom\",\"Jerry\"]"));
     }
