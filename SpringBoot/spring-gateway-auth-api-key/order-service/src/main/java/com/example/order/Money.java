@@ -1,7 +1,6 @@
-package com.example.product;
+package com.example.order;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 
 public final class Money {
 
