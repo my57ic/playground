@@ -37,6 +37,20 @@ class SpringMvcIntegrationTest extends Specification {
             result.andDo(print()).andExpect(status().isCreated())
     }
 
+    def "should doesn't allow to add customer"() {
+        given:
+            Map request = [
+                    firstName: 'John'
+            ]
+        when:
+            def result = mockMvc.perform(post("/")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .characterEncoding("UTF-8")
+                    .content(toJson(request)))
+        then:
+            result.andDo(print()).andExpect(status().isBadRequest())
+    }
+
     def "should return customer"() {
         setup:
             when(customerRepository.findByFirstName("John")).thenReturn(Optional.of(new Customer("John", "Doe")))
@@ -45,6 +59,16 @@ class SpringMvcIntegrationTest extends Specification {
                             .param("firstName", "John"))
         then:
             result.andDo(print()).andExpect(status().isOk())
+    }
+
+    def "should return not found status code"() {
+        setup:
+            when(customerRepository.findByFirstName("John")).thenReturn(Optional.of(new Customer("John", "Doe")))
+        when:
+            def result = mockMvc.perform(get("/")
+                    .param("firstName", "John_None"))
+        then:
+            result.andDo(print()).andExpect(status().isNotFound())
     }
 
 }
