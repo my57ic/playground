@@ -1,52 +1,44 @@
 package com.example.mongodb
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.util.TestPropertyValues
-import org.springframework.context.ApplicationContextInitializer
-import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.test.context.ContextConfiguration
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.spock.Testcontainers
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import org.springframework.test.annotation.DirtiesContext
 import spock.lang.Specification
 
-import java.text.MessageFormat
-
-@SpringBootTest
-@Testcontainers
-@ContextConfiguration(initializers = Initializer.class)
+@DataMongoTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class MongoDbIntegrationTest extends Specification{
 
-    static GenericContainer mongoDb = new GenericContainer("mongo:latest").withExposedPorts(27017)
-
     @Autowired
-    private CustomerRepository customerRepository
-
-    static class Initializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        @Override
-        void initialize(ConfigurableApplicationContext applicationContext) {
-            mongoDb.start()
-            Integer mappedPort = mongoDb.getMappedPort(27017);
-            String mongoPort = MessageFormat.format("spring.data.mongodb.port={0,number,#}", mappedPort);
-            TestPropertyValues.of(mongoPort).applyTo(applicationContext.getEnvironment());
-        }
-    }
+    CustomerRepository customerRepository
 
     def "should persist customer"() {
         given:
             def customer = getCustomer()
         when:
-            customerRepository.save(customer)
-            def customerFromDb = findCustomer(customer.firstName)
+            customerIsPersisted(customer)
         then:
-            !customerFromDb.empty
-            with(customerFromDb.get()) {
-                firstName == customer.firstName
-                lastName == customer.lastName
+            customerFromDb(customer.firstName) != null
+    }
+
+    def "should retrieve customer"() {
+        setup:
+            customerRepository.save(getCustomer())
+        when:
+            def customer = customerRepository.findByFirstName("John")
+        then:
+            !customer.empty
+            with(customer.get()) {
+                firstName == "John"
+                lastName == "Doe"
             }
     }
 
-    private Optional<Customer> findCustomer(String firstName) {
+    private Customer customerIsPersisted(Customer customer) {
+        customerRepository.save(customer)
+    }
+
+    private Optional<Customer> customerFromDb(String firstName) {
         customerRepository.findByFirstName(firstName)
     }
 
