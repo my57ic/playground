@@ -1,0 +1,243 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue
+spec:
+  # minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: queue
+  template:
+    metadata:
+      labels:
+        app: queue
+    spec:
+      containers:
+      - name: queue
+        image: richardchesterwood/k8s-fleetman-queue:release2
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: position-simulator
+spec:
+  # minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: position-simulator
+  template:
+    metadata:
+      labels:
+        app: position-simulator
+    spec:
+      containers:
+      - name: position-simulator
+        image: richardchesterwood/k8s-fleetman-position-simulator:release2
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: position-tracker
+spec:
+  # minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: position-tracker
+  template:
+    metadata:
+      labels:
+        app: position-tracker
+    spec:
+      containers:
+      - name: position-tracker
+        image: richardchesterwood/k8s-fleetman-position-tracker:release3
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  # minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: richardchesterwood/k8s-fleetman-api-gateway:release2
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  # minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        image: richardchesterwood/k8s-fleetman-webapp-angular:release2
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice
+---
+
+---
+#What we need
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-pvc
+spec:
+  storageClassName: mongo-storage
+  resources:
+    requests:
+      storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+---
+#How that sould be implemented
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+spec:
+  storageClassName: mongo-storage
+  accessModes:
+    - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  hostPath:
+    path: "/mnt/directory"
+    type: DirectoryOrCreate
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+spec:
+  # minReadySeconds: 30
+  replicas: 1
+  selector:
+    matchLabels: 
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:3.6.5-jessie
+        volumeMounts:
+            - name: mongo-storage
+              mountPath: /data/db
+      volumes:
+        - name: mongo-storage
+          persistentVolumeClaim:
+              claimName: mongo-pvc
+
+
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: fleetman-queue
+spec:
+  ports:
+  - name: http
+    port: 8161
+    nodePort: 30010
+  - name: endpoint
+    port: 61616
+  selector:
+    app: queue
+  type: NodePort
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: fleetman-position-tracker
+spec:
+  ports:
+  - name: http
+    port: 8080
+  selector:
+    app: position-tracker
+  type: ClusterIP
+
+
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: fleetman-api-gateway
+spec:
+  ports:
+  - name: http
+    port: 8080
+  selector:
+    app: api-gateway
+  type: ClusterIP
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: fleetman-webapp
+spec:
+  ports:
+  - name: http
+    port: 80
+    nodePort: 30080
+  selector:
+    app: webapp
+  type: NodePort
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: fleetman-mongodb
+spec:
+  ports:
+  - name: tcp
+    port: 27017
+  selector:
+    app: mongodb
+  type: ClusterIP

@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: queue-service
+spec:
+  ports:
+  - name: http
+    port: 8161
+    nodePort: 30010
+  selector:
+    app: exercise-queue
+  type: NodePort
